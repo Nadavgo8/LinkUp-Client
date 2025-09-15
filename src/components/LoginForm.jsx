@@ -14,7 +14,7 @@ export default observer(function LoginForm(){
     try{
       const res = await auth.login(email, password)
       if (res?.error) setMessage(res.error)
-      else { setMessage(''); nav('/discover') } 
+      else { setMessage(''); nav('/') } 
     } catch(err){ setMessage(err.message) }
   }
 
@@ -26,7 +26,7 @@ export default observer(function LoginForm(){
       <button disabled={auth.loading} className="rounded bg-blue-600 py-2 text-white hover:bg-blue-700 disabled:opacity-60">
         {auth.loading ? 'Logging in…' : 'Login'}
       </button>
-      <Link to="/signup" className="text-center text-sm text-blue-600 underline">Don’t have an account? Sign up</Link>
+      <Link to="/signup" className="text-center text-sm text-blue-600 underline">Don’t have an account? Register Here</Link>
       {message && <p className="text-center text-red-500">{message}</p>}
     </form>
   )

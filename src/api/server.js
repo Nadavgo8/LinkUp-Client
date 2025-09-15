@@ -83,6 +83,4 @@ export function logout() {
   setAuthToken("");
 }
 
-// export async function me() {
-//   return req('/auth/me')
-// }
+

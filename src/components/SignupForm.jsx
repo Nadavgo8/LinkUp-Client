@@ -17,20 +17,13 @@ export default observer(function SignupForm() {
     const f = e.target.files?.[0] || null;
     setPhotoFile(f);
     if (photoPreview) URL.revokeObjectURL(photoPreview);
-    if (f) setPhotoPreview(URL.createObjectURL(f));
-    else setPhotoPreview("");
+    setPhotoPreview(f ? URL.createObjectURL(f) : "");
   }
-  useEffect(
-    () => () => {
-      if (photoPreview) URL.revokeObjectURL(photoPreview);
-    },
-    [photoPreview]
-  );
+  useEffect(() => () => { if (photoPreview) URL.revokeObjectURL(photoPreview) }, [photoPreview]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // create FormData object
       const form = new FormData();
       form.append("photo", photoFile);
       form.append("email", email);
@@ -40,10 +33,7 @@ export default observer(function SignupForm() {
 
       const res = await auth.signup(form);
       if (res?.error) setMessage(res.error);
-      else {
-        setMessage("");
-        nav("/");
-      }
+      else { setMessage(""); nav("/"); }
     } catch (err) {
       setMessage(err?.message || "Signup failed");
     }
@@ -52,77 +42,79 @@ export default observer(function SignupForm() {
   const canSubmit = fullName && email && password && dob && !auth.loading;
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="mx-auto mt-6 flex w-full max-w-md flex-col gap-4 rounded-lg bg-white p-6 shadow"
-    >
-      <h2 className="mb-2 text-center text-xl font-bold">
-        Create your LinkUp account
-      </h2>
+      <form onSubmit={handleSubmit} className="mx-auto w-full max-w-md flex flex-col gap-4 rounded-2xl bg-white p-6 md:p-8 shadow-xl ring-1 ring-black/5">
+        <h2 className="text-center text-2xl font-extrabold">Create your LinkUp account</h2>
 
-      <input
-        className="rounded border p-2"
-        placeholder="Full name"
-        value={fullName}
-        onChange={(e) => setFullName(e.target.value)}
-        required
-      />
+        {photoPreview ? (
+          <img
+            src={photoPreview}
+            alt="preview"
+            className="mx-auto h-20 w-20 rounded-full object-cover ring-2 ring-indigo-200"
+          />
+        ) : (
+          <div className="mx-auto h-20 w-20 rounded-full ring-2 ring-dashed ring-slate-200 grid place-items-center text-slate-400 text-sm">
+            Photo
+          </div>
+        )}
 
-      <input
-        className="rounded border p-2"
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-
-      <input
-        className="rounded border p-2"
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-
-      <input
-        className="rounded border p-2"
-        type="date"
-        placeholder="Date of Birth"
-        value={dob}
-        onChange={(e) => setDob(e.target.value)}
-        required
-      />
-
-      <input
-        className="rounded border p-2"
-        type="file"
-        accept="image/*"
-        onChange={handlePhoto}
-      />
-
-      {photoPreview && (
-        <img
-          src={photoPreview}
-          alt="preview"
-          className="mx-auto h-16 w-16 rounded-full object-cover ring-1 ring-gray-200"
+        <input
+          className="h-11 rounded-xl border border-slate-300 px-3 outline-none focus:ring-2 focus:ring-indigo-200"
+          placeholder="Full name"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          required
         />
-      )}
+        <input
+          className="h-11 rounded-xl border border-slate-300 px-3 outline-none focus:ring-2 focus:ring-indigo-200"
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          className="h-11 rounded-xl border border-slate-300 px-3 outline-none focus:ring-2 focus:ring-indigo-200"
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <input
+          className="h-11 rounded-xl border border-slate-300 px-3 outline-none focus:ring-2 focus:ring-indigo-200"
+          type="date"
+          placeholder="Date of Birth"
+          value={dob}
+          onChange={(e) => setDob(e.target.value)}
+          required
+        />
 
-      <button
-        type="submit"
-        className="rounded bg-blue-600 py-2 text-white hover:bg-blue-700"
-      >
-        Sign Up
-        {/* {auth.loading ? 'Signing up…' : 'Sign Up'} */}
-      </button>
+        <label className="block">
+          <span className="mb-1 block text-sm text-slate-600">Profile photo</span>
+          <input
+            className="block w-full text-sm file:mr-4 file:rounded-md file:border-0 file:bg-indigo-50 file:px-3 file:py-2 file:text-indigo-700 hover:file:bg-indigo-100"
+            type="file"
+            accept="image/*"
+            onChange={handlePhoto}
+          />
+        </label>
 
-      <Link to="/login" className="text-center text-sm text-blue-600 underline">
-        Already have an account? Log in
-      </Link>
+        <button
+          type="submit"
+          // disabled={!canSubmit}
+          className="w-full rounded-xl bg-indigo-600 py-2.5 text-white font-medium hover:bg-indigo-700 disabled:opacity-60"
+        >
+          Sign Up
+          {/* {auth.loading ? "Signing up…" : "Sign Up"} */}
+        </button>
 
-      {message && <p className="text-center text-red-500">{message}</p>}
-    </form>
+        <p className="text-center text-sm">
+          <Link to="/login" className="text-indigo-600 hover:underline">
+            Already have an account? Log in
+          </Link>
+        </p>
+
+        {message && <p className="text-center text-red-500 text-sm">{message}</p>}
+      </form>
   );
 });

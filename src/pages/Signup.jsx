@@ -1,4 +1,10 @@
 import SignupForm from '../components/SignupForm.jsx'
 export default function Signup(){ 
-    return <div className="mx-auto max-w-7xl p-4"><SignupForm/></div> 
+     return (
+    
+    <main className="min-h-[calc(100vh-56px)] w-full bg-slate-50 px-4 flex items-center justify-center">
+      <SignupForm />
+    </main>
+  )
+
 }
