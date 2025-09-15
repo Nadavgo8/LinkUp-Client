@@ -69,10 +69,17 @@ export async function login(email, password) {
   return data;
 }
 
-export async function signup({ name, email, password, age, bio }) {
+export async function signup({ name, email, password, dob, photoFile  }) {
+  const formData = new FormData()
+  fd.append('name', name)
+  fd.append('email', email)
+  fd.append('password', password)
+  fd.append('dob', dob)                
+  if (photoFile) fd.append('avatar', photoFile)
+
   const data = await req("/auth/register", {
     method: "POST",
-    body: { name, email, password, age, bio },
+    body: formData,
     auth: false,
   });
   if (data?.token) setAuthToken(data.token);
