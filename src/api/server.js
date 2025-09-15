@@ -57,7 +57,7 @@ export async function login(email, password) {
 }
 
 export async function signup({ name, email, password, age, bio }) {
-  const data = await req('/auth/signup', { method: 'POST', body: { name, email, password, age, bio }, auth: false })
+  const data = await req('/auth/register', { method: 'POST', body: { name, email, password, age, bio }, auth: false })
   if (data?.token) setAuthToken(data.token)
   return data
 }
