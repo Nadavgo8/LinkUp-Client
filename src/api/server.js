@@ -91,3 +91,25 @@ export async function updateMyProfile(body) {
   // body include: fullName, bio, topics, photoUrl (file)
   return req('/user/profile', { method: 'PUT', body })
 }
+
+export async function discoverProfiles({ goal, lat, lng, radiusKm=10, langs } = {}) {
+  // build query string 
+  const q = new URLSearchParams()
+  if (goal) q.set('goal', goal)
+  if (lat != null && lng != null) { q.set('lat', lat); q.set('lng', lng) }
+  if (radiusKm != null) q.set('radius', String(radiusKm))
+  if (Array.isArray(langs) && langs.length) q.set('langs', langs.join(','))
+  return req(`/profile/discover?${q.toString()}`, { method: 'GET' })
+}
+
+export async function decideOnUser({ targetId, decision, goal }) {
+  return req('/connections/decide', {
+    method: 'POST',
+    body: { targetId, decision, goal }   // 'match' | 'pass'
+  })
+}
+
+
+export async function getPublicProfile(userId) {
+  return req(`/users/${userId}`, { method: 'GET' })
+}
