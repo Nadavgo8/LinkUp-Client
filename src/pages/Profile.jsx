@@ -1,112 +1,184 @@
 // src/pages/Profile.jsx
-import { useEffect, useState } from 'react'
-import { observer } from 'mobx-react-lite'
-import { auth } from '../stores/authStore.js'
-import { getMyProfile, updateMyProfile } from '../api/server.js'
+import { useEffect, useState } from "react";
+import { observer } from "mobx-react-lite";
+import { auth } from "../stores/authStore.js";
+import { getMyProfile, updateMyProfile } from "../api/server.js";
 
 // Fixed list of goals (keys saved in DB as 'goals')
 const GOALS = [
-  { key: 'dating',            label: 'Dating' },
-  { key: 'sports',            label: 'Sports' },
-  { key: 'language_practice', label: 'Language Learning' },
-  { key: 'studies',           label: 'Studies' },
-  { key: 'hangout',           label: 'Hangout' },
-]
+  { key: "dating", label: "Dating" },
+  { key: "sports", label: "Sports" },
+  { key: "language_practice", label: "Language Learning" },
+  { key: "studies", label: "Studies" },
+  { key: "hangout", label: "Hangout" },
+];
 
-export default observer(function Profile(){
-  const [loading, setLoading]   = useState(true)
-  const [error, setError]       = useState('')
+export default observer(function Profile() {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-
-  const [fullName, setFullName] = useState(auth.user?.fullName || auth.user?.full_name || '')
-  const [email, setEmail]       = useState(auth.user?.email || '')
-  const [photoUrl, setPhotoUrl] = useState(auth.user?.photoUrl || '')
-  const [bio, setBio]           = useState(auth.user?.bio || '')
+  const [fullName, setFullName] = useState(
+    auth.user?.fullName || auth.user?.full_name || ""
+  );
+  const [email, setEmail] = useState(auth.user?.email || "");
+  const [photoUrl, setPhotoUrl] = useState(auth.user?.photoUrl || "");
+  const [bio, setBio] = useState(auth.user?.bio || "");
   // Start editing bio if empty
-  const [editingBio, setEditingBio] = useState(!(auth.user?.bio?.trim()))
-  const [goals, setGoals]       = useState(Array.isArray(auth.user?.goals) ? auth.user.goals : [])
+  const [editingBio, setEditingBio] = useState(!auth.user?.bio?.trim());
+  const [goals, setGoals] = useState(
+    Array.isArray(auth.user?.goals) ? auth.user.goals : []
+  );
 
+  const [isSaving, setIsSaving] = useState(false);
+  const [savingBio, setSavingBio] = useState(false);
 
-  const [isSaving, setIsSaving]     = useState(false) 
-  const [savingBio, setSavingBio]   = useState(false) 
+  //Edit profile
+  const [editing, setEditing] = useState(false);
 
-  // Load profile 
+  // Load profile
   useEffect(() => {
-    let alive = true
-    ;(async () => {
-      try{
-        const data = await getMyProfile()
-        if (!alive) return
-        setFullName(data.fullName || data.full_name || '')
-        setEmail(data.email || '')
-        setPhotoUrl(data.photoUrl || '')
-        setBio(data.bio || '')
-        setEditingBio(!(data.bio && data.bio.trim()))
-        setGoals(Array.isArray(data.goals) ? data.goals : [])
-        auth.setUser(data)
-      } catch(e){
-        setError(e?.message || 'Failed to load profile')
+    let alive = true;
+    (async () => {
+      try {
+        const data = await getMyProfile();
+        if (!alive) return;
+        setFullName(data.fullName || data.full_name || "");
+        setEmail(data.email || "");
+        setPhotoUrl(data.photoUrl || "");
+        setBio(data.bio || "");
+        setEditingBio(!(data.bio && data.bio.trim()));
+        setGoals(Array.isArray(data.goals) ? data.goals : []);
+        auth.setUser(data);
+      } catch (e) {
+        setError(e?.message || "Failed to load profile");
       } finally {
-        if (alive) setLoading(false)
+        if (alive) setLoading(false);
       }
-    })()
-    return () => { alive = false }
-  }, [])
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
-    // Save bio (inline, when empty)
-  async function saveBioInline(){
-    if (savingBio || !bio.trim()) return
-    setSavingBio(true); setError('')
-    try{
-    // PUT /user/profile { bio }
-      const updated = await updateMyProfile({ bio })
-      setBio(updated.bio || '')
-      auth.setUser(updated)
-      setEditingBio(false) 
-    } catch(e){
-      setError(e?.message || 'Failed to save bio')
+  // Save bio (inline, when empty)
+  async function saveBioInline() {
+    if (savingBio || !bio.trim()) return;
+    setSavingBio(true);
+    setError("");
+    try {
+      // PUT /user/profile { bio }
+      const updated = await updateMyProfile({ bio });
+      setBio(updated.bio || "");
+      auth.setUser(updated);
+      setEditingBio(false);
+    } catch (e) {
+      setError(e?.message || "Failed to save bio");
     } finally {
-      setSavingBio(false)
+      setSavingBio(false);
     }
   }
 
-  // Toggle a goal and SAVE 
-  async function toggleGoal(key){
-    if (isSaving) return            
-    setIsSaving(true); setError('')
-    const prev = goals
-    const next = prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
-    setGoals(next)                
+  // Toggle a goal and SAVE
+  async function toggleGoal(key) {
+    if (isSaving) return;
+    setIsSaving(true);
+    setError("");
+    const prev = goals;
+    const next = prev.includes(key)
+      ? prev.filter((k) => k !== key)
+      : [...prev, key];
+    setGoals(next);
     // PUT /user/profile { goals }
-    try{
-      const updated = await updateMyProfile({ goals: next })
-      setGoals(Array.isArray(updated?.goals) ? updated.goals : next)
-      auth.setUser(updated)
-    } catch(e){
-        // rollback on error
-      setGoals(prev)                
-      setError(e?.message || 'Failed to update goals')
+    try {
+      const updated = await updateMyProfile({ goals: next });
+      setGoals(Array.isArray(updated?.goals) ? updated.goals : next);
+      auth.setUser(updated);
+    } catch (e) {
+      // rollback on error
+      setGoals(prev);
+      setError(e?.message || "Failed to update goals");
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
   }
 
-  if (loading) return <div className="py-10 text-center">Loading profile…</div>
+  if (loading) return <div className="py-10 text-center">Loading profile…</div>;
 
   return (
     <div className="mx-auto max-w-5xl px-2 md:px-0 space-y-6">
       {/* Profile header */}
       <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
         <div className="flex items-center gap-4">
-          <img
-            src={photoUrl}
-            alt="Profile"
-            className="h-24 w-24 rounded-full object-cover ring-1 ring-black/10"
-          />
+          {editing ? (
+            <div className="relative">
+              <img
+                src={photoUrl}
+                alt="Profile"
+                className="h-24 w-24 rounded-full object-cover ring-1 ring-black/10"
+              />
+              <label className="absolute bottom-0 right-0 bg-indigo-600 text-white px-2 py-1 text-xs rounded cursor-pointer hover:bg-indigo-700">
+                Change
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const formData = new FormData();
+                    formData.append("file", file);
+                    formData.append("upload_preset", "<UPLOAD_PRESET>");
+                    const res = await fetch(
+                      `https://api.cloudinary.com/v1_1/<CLOUD_NAME>/image/upload`,
+                      {
+                        method: "POST",
+                        body: formData,
+                      }
+                    );
+                    const data = await res.json();
+                    setPhotoUrl(data.secure_url);
+                  }}
+                />
+              </label>
+            </div>
+          ) : (
+            <img
+              src={photoUrl}
+              alt="Profile"
+              className="h-24 w-24 rounded-full object-cover ring-1 ring-black/10"
+            />
+          )}
+
           <div>
-            <h1 className="text-4xl font-extrabold">{fullName}</h1>
-            <p className="text-slate-600">{email}</p>
+            {editing ? (
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="text-2xl font-bold border-b focus:outline-none"
+              />
+            ) : (
+              <h1 className="text-4xl font-extrabold">{fullName}</h1>
+            )}
+
+            {editing ? (
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="text-slate-600 border-b focus:outline-none"
+              />
+            ) : (
+              <p className="text-slate-600">{email}</p>
+            )}
           </div>
+
+          <button
+            onClick={() => setEditing(!editing)}
+            className="ml-auto rounded bg-indigo-600 px-3 py-1 text-white hover:bg-indigo-700"
+          >
+            {editing ? "Cancel" : "Edit Profile"}
+          </button>
         </div>
       </div>
 
@@ -114,57 +186,79 @@ export default observer(function Profile(){
       <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
         <h2 className="mb-3 text-lg font-semibold">Bio</h2>
 
-        {(!editingBio && bio?.trim())
-            ? <p className="whitespace-pre-wrap text-slate-700">{bio}</p>
-            : (
-            <div className="space-y-3">
-                <p className="text-slate-600">No bio yet. Tell others about yourself:</p>
-                <textarea
-                className="w-full min-h-28 rounded border p-2"
-                value={bio}
-                onChange={e=>setBio(e.target.value)}
-                placeholder="Write something about yourself…"
-                />
-                <button
-                onClick={saveBioInline}
-                disabled={savingBio || !bio.trim()}
-                className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-60"
-                >
-                {savingBio ? 'Saving…' : 'Save bio'}
-                </button>
-            </div>
-            )
-        }
+        {editing ? (
+          <textarea
+            className="w-full min-h-28 rounded border p-2"
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+          />
+        ) : bio?.trim() ? (
+          <p className="whitespace-pre-wrap text-slate-700">{bio}</p>
+        ) : (
+          <p className="text-slate-600 italic">No bio yet.</p>
+        )}
       </div>
 
-        {/* Goals */}
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
-            <h2 className="mb-3 text-lg font-semibold">Your goals</h2>
-            <div className="flex flex-wrap gap-2">
-                {GOALS.map(g => {
-                const active = goals.includes(g.key)
-                return (
-                    <button
-                    key={g.key}
-                    type="button"
-                    onClick={() => toggleGoal(g.key)}
-                    className={`rounded-full border px-3 py-1 text-sm transition
-                        ${active
-                        ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'}
-                        focus:outline-none focus:ring-2 focus:ring-indigo-300`}
-                    title={g.key}
-                    >
-                    {g.label}
-                    </button>
-                )
-                })}
-            </div>
+      {/* Save button when editing */}
+      {editing && (
+        <div className="text-right">
+          <button
+            onClick={async () => {
+              try {
+                setIsSaving(true);
+                const updated = await updateMyProfile({
+                  fullName,
+                  email,
+                  photoUrl,
+                  bio,
+                });
+                auth.setUser(updated);
+                setEditing(false);
+              } catch (e) {
+                setError(e?.message || "Failed to save profile");
+              } finally {
+                setIsSaving(false);
+              }
+            }}
+            className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+            disabled={isSaving}
+          >
+            {isSaving ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      )}
 
-            {isSaving && <div className="mt-3 text-sm text-slate-500">Saving your goals…</div>}
-            {error && <div className="mt-2 text-sm text-red-600">{error}</div>}
+      {/* Goals */}
+      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
+        <h2 className="mb-3 text-lg font-semibold">Your goals</h2>
+        <div className="flex flex-wrap gap-2">
+          {GOALS.map((g) => {
+            const active = goals.includes(g.key);
+            return (
+              <button
+                key={g.key}
+                type="button"
+                onClick={() => toggleGoal(g.key)}
+                className={`rounded-full border px-3 py-1 text-sm transition
+                        ${
+                          active
+                            ? "bg-indigo-600 text-white border-indigo-600"
+                            : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                        }
+                        focus:outline-none focus:ring-2 focus:ring-indigo-300`}
+                title={g.key}
+              >
+                {g.label}
+              </button>
+            );
+          })}
         </div>
 
+        {isSaving && (
+          <div className="mt-3 text-sm text-slate-500">Saving your goals…</div>
+        )}
+        {error && <div className="mt-2 text-sm text-red-600">{error}</div>}
+      </div>
     </div>
-  )
-})
+  );
+});
