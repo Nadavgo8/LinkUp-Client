@@ -162,12 +162,7 @@ export default observer(function Profile() {
             )}
 
             {editing ? (
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="text-slate-600 border-b focus:outline-none"
-              />
+              <p className="text-slate-600">{email}</p>  
             ) : (
               <p className="text-slate-600">{email}</p>
             )}
@@ -208,7 +203,6 @@ export default observer(function Profile() {
                 setIsSaving(true);
                 const updated = await updateMyProfile({
                   fullName,
-                  email,
                   photoUrl,
                   bio,
                 });

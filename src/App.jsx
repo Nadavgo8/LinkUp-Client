@@ -84,18 +84,6 @@ export default observer(function App() {
                 >
                   MY CONNECTION
                 </NavLink>
-                <NavLink
-                  to="/settings"
-                  className={({ isActive }) =>
-                    `whitespace-nowrap hover:text-indigo-600 ${
-                      isActive
-                        ? "text-indigo-600 font-medium"
-                        : "text-slate-700"
-                    }`
-                  }
-                >
-                  SETTINGS
-                </NavLink>
                 <button
                   onClick={handleLogout}
                   className="whitespace-nowrap rounded px-3 py-1 ring-1 ring-black/10 hover:bg-slate-50"
