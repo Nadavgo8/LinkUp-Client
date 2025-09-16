@@ -22,6 +22,8 @@ export default observer(function Profile(){
   const [email, setEmail]       = useState(auth.user?.email || '')
   const [photoUrl, setPhotoUrl] = useState(auth.user?.photoUrl || '')
   const [bio, setBio]           = useState(auth.user?.bio || '')
+  // Start editing bio if empty
+  const [editingBio, setEditingBio] = useState(!(auth.user?.bio?.trim()))
   const [goals, setGoals]       = useState(Array.isArray(auth.user?.goals) ? auth.user.goals : [])
 
 
@@ -39,6 +41,7 @@ export default observer(function Profile(){
         setEmail(data.email || '')
         setPhotoUrl(data.photoUrl || '')
         setBio(data.bio || '')
+        setEditingBio(!(data.bio && data.bio.trim()))
         setGoals(Array.isArray(data.goals) ? data.goals : [])
         auth.setUser(data)
       } catch(e){
@@ -59,6 +62,7 @@ export default observer(function Profile(){
       const updated = await updateMyProfile({ bio })
       setBio(updated.bio || '')
       auth.setUser(updated)
+      setEditingBio(false) 
     } catch(e){
       setError(e?.message || 'Failed to save bio')
     } finally {
@@ -110,26 +114,26 @@ export default observer(function Profile(){
       <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
         <h2 className="mb-3 text-lg font-semibold">Bio</h2>
 
-        {bio?.trim()
-          ? <p className="whitespace-pre-wrap text-slate-700">{bio}</p>
-          : (
+        {(!editingBio && bio?.trim())
+            ? <p className="whitespace-pre-wrap text-slate-700">{bio}</p>
+            : (
             <div className="space-y-3">
-              <p className="text-slate-600">No bio yet. Tell others about yourself:</p>
-              <textarea
+                <p className="text-slate-600">No bio yet. Tell others about yourself:</p>
+                <textarea
                 className="w-full min-h-28 rounded border p-2"
                 value={bio}
                 onChange={e=>setBio(e.target.value)}
                 placeholder="Write something about yourself…"
-              />
-              <button
+                />
+                <button
                 onClick={saveBioInline}
                 disabled={savingBio || !bio.trim()}
                 className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-60"
-              >
+                >
                 {savingBio ? 'Saving…' : 'Save bio'}
-              </button>
+                </button>
             </div>
-          )
+            )
         }
       </div>
 
