@@ -52,6 +52,12 @@ class AuthStore {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
   }
+
+  setUser(u){
+  this.user = u || null
+  if (u) localStorage.setItem('user', JSON.stringify(u))
+  else localStorage.removeItem('user')
+  }
 }
 
 export const auth = new AuthStore()

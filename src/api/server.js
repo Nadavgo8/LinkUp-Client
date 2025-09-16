@@ -83,4 +83,11 @@ export function logout() {
   setAuthToken("");
 }
 
+export async function getMyProfile() {
+  return req('/user/profile') 
+}
 
+export async function updateMyProfile(body) {
+  // body include: fullName, bio, topics, photoUrl (file)
+  return req('/user/profile', { method: 'PUT', body })
+}

@@ -14,7 +14,7 @@ export default observer(function LoginForm(){
     try{
       const res = await auth.login(email, password)
       if (res?.error) setMessage(res.error)
-      else { setMessage(''); nav('/') } 
+      else { setMessage(''); nav('/profile') } 
     } catch(err){ setMessage(err.message) }
   }
 
