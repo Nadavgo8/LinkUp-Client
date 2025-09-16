@@ -40,8 +40,7 @@ export default observer(function Profile(){
         setPhotoUrl(data.photoUrl || '')
         setBio(data.bio || '')
         setGoals(Array.isArray(data.goals) ? data.goals : [])
-        auth.user = data
-        try { localStorage.setItem('user', JSON.stringify(data)) } catch {}
+        auth.setUser(data)
       } catch(e){
         setError(e?.message || 'Failed to load profile')
       } finally {
@@ -59,8 +58,7 @@ export default observer(function Profile(){
     // PUT /user/profile { bio }
       const updated = await updateMyProfile({ bio })
       setBio(updated.bio || '')
-      auth.user = updated
-      try { localStorage.setItem('user', JSON.stringify(updated)) } catch {}
+      auth.setUser(updated)
     } catch(e){
       setError(e?.message || 'Failed to save bio')
     } finally {
@@ -77,10 +75,9 @@ export default observer(function Profile(){
     setGoals(next)                
     // PUT /user/profile { goals }
     try{
-      const updated = await updateMyProfile({ goals: next }) // PUT /user/profile
+      const updated = await updateMyProfile({ goals: next })
       setGoals(Array.isArray(updated?.goals) ? updated.goals : next)
-      auth.user = updated
-      try { localStorage.setItem('user', JSON.stringify(updated)) } catch {}
+      auth.setUser(updated)
     } catch(e){
         // rollback on error
       setGoals(prev)                

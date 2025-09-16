@@ -48,9 +48,11 @@ class AuthStore {
   logout() {
     apiLogout()
     this.token = ''
-    this.user  = null
+    // this.user  = null
+    // localStorage.removeItem('token')
+    // localStorage.removeItem('user')
     localStorage.removeItem('token')
-    localStorage.removeItem('user')
+    this.setUser(null) 
   }
 
   setUser(u){
