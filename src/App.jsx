@@ -1,4 +1,4 @@
-import { Routes, Route, NavLink, Link, useNavigate } from 'react-router-dom'
+import { Routes, Route, NavLink, Link, useNavigate, Navigate } from 'react-router-dom'
 import Home from './pages/Home.jsx'
 import Signup from './pages/SignUp.jsx'
 import Profile from './pages/Profile.jsx'
@@ -18,10 +18,10 @@ export default observer(function App(){
     <div className="min-h-screen bg-slate-50">
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b">
         <div className="mx-auto max-w-7xl h-14 px-4 flex items-center gap-4">
-          <Link to="/" className="text-xl font-semibold text-indigo-600">LinkUp</Link>
+          <Link to={auth.isAuthenticated ? "/profile" : "/"} className="text-xl font-semibold text-indigo-600">LinkUp</Link>
 
           <nav className="ml-auto flex items-center gap-6 text-sm md:text-base">
-            {/* When NOT authenticated: show Home + Register */}
+            {/* When NOT authenticated */}
             {!auth.isAuthenticated && (
               <>
                 <NavLink to="/" className={({ isActive }) =>
@@ -35,7 +35,7 @@ export default observer(function App(){
               </>
             )}
 
-            {/* When authenticated: NO Home link */}
+            {/* When authenticated */}
             {auth.isAuthenticated && (
               <>
                 <NavLink to="/profile" className={({ isActive }) =>
