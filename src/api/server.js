@@ -59,6 +59,7 @@ async function req(path, { method = "GET", body, auth = true, headers } = {}) {
   return isJson ? res.json() : res.text();
 }
 
+// --- Auth ---
 export async function login(email, password) {
   const data = await req("/auth/login", {
     method: "POST",
@@ -83,33 +84,46 @@ export function logout() {
   setAuthToken("");
 }
 
+// --- Profile ---
 export async function getMyProfile() {
-  return req('/user/profile') 
+  return req("/user/profile");
 }
 
-export async function updateMyProfile(body) {
-  // body include: fullName, bio, topics, photoUrl (file)
-  return req('/user/profile', { method: 'PUT', body })
+export async function updateMe(body) {
+  return req("/user/profile", { method: "PUT", body });
 }
 
-export async function discoverProfiles({ goal, lat, lng, radiusKm=10, langs } = {}) {
-  // build query string 
-  const q = new URLSearchParams()
-  if (goal) q.set('goal', goal)
-  if (lat != null && lng != null) { q.set('lat', lat); q.set('lng', lng) }
-  if (radiusKm != null) q.set('radius', String(radiusKm))
-  if (Array.isArray(langs) && langs.length) q.set('langs', langs.join(','))
-  return req(`/profile/discover?${q.toString()}`, { method: 'GET' })
+// --- Discover ---
+export async function discoverProfiles({
+  goal,
+  lat,
+  lng,
+  radiusKm = 20,
+  langs,
+}) {
+  const params = new URLSearchParams();
+  if (goal) params.set("goals", goal);
+  if (lat && lng) {
+    params.set("lat", lat);
+    params.set("lng", lng);
+  }
+  if (radiusKm) params.set("radius", String(radiusKm));
+  if (langs) {
+    if (Array.isArray(langs)) params.set("langs", langs.join(","));
+    else params.set("langs", langs);
+  }
+  return req(`/profile/discover?${params.toString()}`);
 }
 
+// --- Connections ---
 export async function decideOnUser({ targetId, decision, goal }) {
-  return req('/connections/decide', {
-    method: 'POST',
-    body: { targetId, decision, goal }   // 'match' | 'pass'
-  })
+  if (!targetId) throw new Error("targetId required");
+  return req(`/connections/${targetId}`, {
+    method: "POST",
+    body: { decision, goal },
+  });
 }
-
 
 export async function getPublicProfile(userId) {
-  return req(`/users/${userId}`, { method: 'GET' })
+  return req(`/users/${userId}`, { method: "GET" });
 }

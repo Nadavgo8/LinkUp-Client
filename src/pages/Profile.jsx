@@ -2,7 +2,10 @@
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { auth } from "../stores/authStore.js";
-import { getMyProfile, updateMyProfile } from "../api/server.js";
+import { getMyProfile, updateMe } from "../api/server.js";
+
+const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
 // Fixed list of goals (keys saved in DB as 'goals')
 const GOALS = [
@@ -67,7 +70,7 @@ export default observer(function Profile() {
     setError("");
     try {
       // PUT /user/profile { bio }
-      const updated = await updateMyProfile({ bio });
+      const updated = await updateMe({ bio });
       setBio(updated.bio || "");
       auth.setUser(updated);
       setEditingBio(false);
@@ -90,7 +93,7 @@ export default observer(function Profile() {
     setGoals(next);
     // PUT /user/profile { goals }
     try {
-      const updated = await updateMyProfile({ goals: next });
+      const updated = await updateMe({ goals: next });
       setGoals(Array.isArray(updated?.goals) ? updated.goals : next);
       auth.setUser(updated);
     } catch (e) {
@@ -127,9 +130,9 @@ export default observer(function Profile() {
                     if (!file) return;
                     const formData = new FormData();
                     formData.append("file", file);
-                    formData.append("upload_preset", "<UPLOAD_PRESET>");
+                    formData.append("upload_preset", uploadPreset);
                     const res = await fetch(
-                      `https://api.cloudinary.com/v1_1/<CLOUD_NAME>/image/upload`,
+                      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
                       {
                         method: "POST",
                         body: formData,
@@ -162,7 +165,7 @@ export default observer(function Profile() {
             )}
 
             {editing ? (
-              <p className="text-slate-600">{email}</p>  
+              <p className="text-slate-600">{email}</p>
             ) : (
               <p className="text-slate-600">{email}</p>
             )}
@@ -201,7 +204,7 @@ export default observer(function Profile() {
             onClick={async () => {
               try {
                 setIsSaving(true);
-                const updated = await updateMyProfile({
+                const updated = await updateMe({
                   fullName,
                   photoUrl,
                   bio,
