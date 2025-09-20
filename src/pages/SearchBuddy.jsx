@@ -54,7 +54,7 @@ export default observer(function SearchBuddy() {
           lat: loc?.lat,
           lng: loc?.lng,
           radius: 10,
-          goals: selected,
+          goal: selected,
         });
         if (!alive) return;
         // res expected { count, users }
