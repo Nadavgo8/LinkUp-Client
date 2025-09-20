@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { discoverProfiles, decideOnUser } from "../api/server.js";
-import { useNavigate } from "react-router-dom";
+import {useSearchParams, useNavigate } from "react-router-dom";
 import ProfileCard from "../components/ProfileCard.jsx";
 
 // same constants as in Profile
@@ -24,11 +24,14 @@ function calcAge(dob) {
 
 export default observer(function SearchBuddy() {
   const nav = useNavigate();
-  const [selected, setSelected] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+   const [selected, setSelected] = useState(() => searchParams.get("goal"));
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [loc, setLoc] = useState(null);
+
+
 
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -78,6 +81,14 @@ export default observer(function SearchBuddy() {
     };
   }, [selected, loc?.lat, loc?.lng]);
 
+function chooseGoal(key) {
+    setSelected(key);
+    const next = new URLSearchParams(searchParams);
+    if (key) next.set("goal", key);
+    else next.delete("goal");
+    setSearchParams(next, { replace: false }); // הוספת היסטוריה לטובת Back
+  }
+
   // optimistic UI handlers
   const onPass = async (u) => {
     const prev = list;
@@ -110,7 +121,10 @@ export default observer(function SearchBuddy() {
     }
   };
 
-  const onViewProfile = (u) => nav(`/users/${u._id}`);
+    const onViewProfile = (u) => {
+    const suffix = selected ? `?goal=${encodeURIComponent(selected)}` : "";
+    nav(`/users/${u._id}${suffix}`);
+    };
 
   const title = useMemo(() => {
     if (!selected) return "Pick a goal to discover people";
@@ -129,7 +143,7 @@ export default observer(function SearchBuddy() {
               <button
                 key={g.key}
                 type="button"
-                onClick={() => setSelected(g.key)}
+                onClick={() => chooseGoal(g.key)}
                 className={`rounded-full border px-3 py-1 text-sm transition
                   ${
                     active

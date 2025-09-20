@@ -125,5 +125,5 @@ export async function decideOnUser({ targetId, decision, goal }) {
 }
 
 export async function getPublicProfile(userId) {
-  return req(`/users/${userId}`, { method: "GET" });
+  return req(`/user/${userId}`, { method: "GET" });
 }
