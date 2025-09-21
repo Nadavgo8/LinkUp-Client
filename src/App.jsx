@@ -10,7 +10,8 @@ import Home from "./pages/Home.jsx";
 import Signup from "./pages/SignUp.jsx";
 import Profile from "./pages/Profile.jsx";
 import SearchBuddy from "./pages/SearchBuddy.jsx";
-import PublicProfile from './pages/PublicProfile.jsx'
+import Connections from "./pages/Connections.jsx";
+import PublicProfile from "./pages/PublicProfile.jsx";
 import { ErrorBanner } from "./components/ErrorBanner.jsx";
 import { setErrorReporter } from "./api/server.js";
 import { ui } from "./stores/uiStore.js";
@@ -147,7 +148,17 @@ export default observer(function App() {
               )
             }
           />
-          <Route path="/users/:id" element={<PublicProfile/>} />
+          <Route
+            path="/connections"
+            element={
+              auth.isAuthenticated ? (
+                <Connections />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+          <Route path="/users/:id" element={<PublicProfile />} />
         </Routes>
       </main>
     </div>
