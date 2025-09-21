@@ -1,8 +1,8 @@
-// src/pages/Profile.jsx
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { auth } from "../stores/authStore.js";
 import { getMyProfile, updateMe } from "../api/server.js";
+import { calcAge } from "./PublicProfile.jsx";
 
 const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
@@ -26,14 +26,32 @@ export default observer(function Profile() {
   const [email, setEmail] = useState(auth.user?.email || "");
   const [photoUrl, setPhotoUrl] = useState(auth.user?.photoUrl || "");
   const [bio, setBio] = useState(auth.user?.bio || "");
+
   // Start editing bio if empty
-  const [editingBio, setEditingBio] = useState(!auth.user?.bio?.trim());
+  // const [editingBio, setEditingBio] = useState(!auth.user?.bio?.trim());
   const [goals, setGoals] = useState(
     Array.isArray(auth.user?.goals) ? auth.user.goals : []
   );
 
+  const [occupation, setOccupation] = useState(auth.user?.occupation || "");
+  const [company, setCompany] = useState(auth.user?.company || "");
+  const [smoker, setSmoker] = useState(
+    auth.user?.smoker || "prefer not to say"
+  );
+  const [relationshipStatus, setRelationshipStatus] = useState(
+    auth.user?.relationshipStatus || "prefer not to say"
+  );
+  const [education, setEducation] = useState(auth.user?.education || "");
+  const [interests, setInterests] = useState(
+    Array.isArray(auth.user?.interests) ? auth.user.interests : []
+  );
+  const [city, setCity] = useState(auth.user?.city || "");
+  const [dob, setDob] = useState(
+    auth.user?.dob ? new Date(auth.user.dob).toISOString().slice(0, 10) : ""
+  );
+
   const [isSaving, setIsSaving] = useState(false);
-  const [savingBio, setSavingBio] = useState(false);
+  // const [savingBio, setSavingBio] = useState(false);
 
   //Edit profile
   const [editing, setEditing] = useState(false);
@@ -49,8 +67,16 @@ export default observer(function Profile() {
         setEmail(data.email || "");
         setPhotoUrl(data.photoUrl || "");
         setBio(data.bio || "");
-        setEditingBio(!(data.bio && data.bio.trim()));
+        // setEditingBio(!(data.bio && data.bio.trim()));
         setGoals(Array.isArray(data.goals) ? data.goals : []);
+        setOccupation(data.occupation || "");
+        setCompany(data.company || "");
+        setSmoker(data.smoker || "prefer not to say");
+        setRelationshipStatus(data.relationshipStatus || "prefer not to say");
+        setEducation(data.education || "");
+        setInterests(Array.isArray(data.interests) ? data.interests : []);
+        setCity(data.city || "");
+        setDob(data.dob ? new Date(data.dob).toISOString().slice(0, 10) : "");
         auth.setUser(data);
       } catch (e) {
         setError(e?.message || "Failed to load profile");
@@ -64,20 +90,72 @@ export default observer(function Profile() {
   }, []);
 
   // Save bio (inline, when empty)
-  async function saveBioInline() {
-    if (savingBio || !bio.trim()) return;
-    setSavingBio(true);
+  // async function saveBioInline() {
+  //   if (savingBio || !bio.trim()) return;
+  //   setSavingBio(true);
+  //   setError("");
+  //   try {
+  //     // PUT /user/profile { bio }
+  //     const updated = await updateMe({ bio });
+  //     setBio(updated.bio || "");
+  //     auth.setUser(updated);
+  //     setEditingBio(false);
+  //   } catch (e) {
+  //     setError(e?.message || "Failed to save bio");
+  //   } finally {
+  //     setSavingBio(false);
+  //   }
+  // }
+
+  async function handleSave() {
+    setIsSaving(true);
     setError("");
     try {
-      // PUT /user/profile { bio }
-      const updated = await updateMe({ bio });
-      setBio(updated.bio || "");
+      // prepare interests as array (if user typed a CSV when editing)
+      const interestsToSend = Array.isArray(interests)
+        ? interests
+        : String(interests || "")
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+
+      const body = {
+        fullName,
+        photoUrl,
+        bio,
+        occupation,
+        company,
+        smoker,
+        relationshipStatus,
+        education,
+        interests: interestsToSend,
+        city,
+        dob: dob || undefined,
+        goals,
+      };
+
+      const updated = await updateMe(body);
       auth.setUser(updated);
-      setEditingBio(false);
+      // update local states with returned data (normalized)
+      setFullName(updated.fullName || "");
+      setPhotoUrl(updated.photoUrl || "");
+      setBio(updated.bio || "");
+      setOccupation(updated.occupation || "");
+      setCompany(updated.company || "");
+      setSmoker(updated.smoker || "prefer_not_to_say");
+      setRelationshipStatus(updated.relationshipStatus || "prefer_not_to_say");
+      setEducation(updated.education || "");
+      setInterests(Array.isArray(updated.interests) ? updated.interests : []);
+      setCity(updated.city || "");
+      setDob(
+        updated.dob ? new Date(updated.dob).toISOString().slice(0, 10) : ""
+      );
+      setGoals(Array.isArray(updated.goals) ? updated.goals : []);
+      setEditing(false);
     } catch (e) {
-      setError(e?.message || "Failed to save bio");
+      setError(e?.message || "Failed to save profile");
     } finally {
-      setSavingBio(false);
+      setIsSaving(false);
     }
   }
 
@@ -197,8 +275,162 @@ export default observer(function Profile() {
         )}
       </div>
 
+      {/* Additional details */}
+      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 space-y-4">
+        <h2 className="text-lg font-semibold">Details</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium">Occupation</label>
+            {editing ? (
+              <input
+                value={occupation}
+                onChange={(e) => setOccupation(e.target.value)}
+                className="mt-1 w-full rounded border p-2"
+              />
+            ) : occupation ? (
+              <div className="mt-1 text-slate-700">{occupation}</div>
+            ) : (
+              <div className="mt-1 text-slate-500 italic">
+                No occupation set
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">Company</label>
+            {editing ? (
+              <input
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                className="mt-1 w-full rounded border p-2"
+              />
+            ) : company ? (
+              <div className="mt-1 text-slate-700">{company}</div>
+            ) : (
+              <div className="mt-1 text-slate-500 italic">No company</div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">
+              Relationship status
+            </label>
+            {editing ? (
+              <select
+                value={relationshipStatus}
+                onChange={(e) => setRelationshipStatus(e.target.value)}
+                className="mt-1 w-full rounded border p-2"
+              >
+                <option value="prefer_not_to_say">Prefer not to say</option>
+                <option value="single">Single</option>
+                <option value="married">Married</option>
+                <option value="divorced">Divorced</option>
+                <option value="other">Other</option>
+              </select>
+            ) : (
+              <div className="mt-1 text-slate-700">{relationshipStatus}</div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">Smoker</label>
+            {editing ? (
+              <select
+                value={smoker}
+                onChange={(e) => setSmoker(e.target.value)}
+                className="mt-1 w-full rounded border p-2"
+              >
+                <option value="prefer_not_to_say">Prefer not to say</option>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+                <option value="occasionally">Occasionally</option>
+              </select>
+            ) : (
+              <div className="mt-1 text-slate-700">{smoker}</div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">Education</label>
+            {editing ? (
+              <input
+                value={education}
+                onChange={(e) => setEducation(e.target.value)}
+                className="mt-1 w-full rounded border p-2"
+              />
+            ) : education ? (
+              <div className="mt-1 text-slate-700">{education}</div>
+            ) : (
+              <div className="mt-1 text-slate-500 italic">
+                No education specified
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">City</label>
+            {editing ? (
+              <input
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                className="mt-1 w-full rounded border p-2"
+              />
+            ) : city ? (
+              <div className="mt-1 text-slate-700">{city}</div>
+            ) : (
+              <div className="mt-1 text-slate-500 italic">No city</div>
+            )}
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium">
+              Interests (comma separated)
+            </label>
+            {editing ? (
+              <input
+                value={
+                  Array.isArray(interests) ? interests.join(", ") : interests
+                }
+                onChange={(e) => setInterests(e.target.value)}
+                className="mt-1 w-full rounded border p-2"
+              />
+            ) : Array.isArray(interests) && interests.length ? (
+              <div className="mt-1 flex flex-wrap gap-2">
+                {interests.map((it, idx) => (
+                  <span
+                    key={idx}
+                    className="rounded-full bg-indigo-50 text-indigo-700 px-2 py-0.5 text-xs"
+                  >
+                    {it}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-1 text-slate-500 italic">No interests</div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">Date of birth</label>
+            {editing ? (
+              <input
+                type="date"
+                value={dob}
+                onChange={(e) => setDob(e.target.value)}
+                className="mt-1 w-full rounded border p-2"
+              />
+            ) : (
+              <div className="mt-1 text-slate-700">
+                {dob ? `${dob} (${calcAge(dob)} y)` : "Not set"}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Save button when editing */}
-      {editing && (
+      {/* {editing && (
         <div className="text-right">
           <button
             onClick={async () => {
@@ -219,6 +451,19 @@ export default observer(function Profile() {
             }}
             className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
             disabled={isSaving}
+          >
+            {isSaving ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      )} */}
+
+      {/* Save button */}
+      {editing && (
+        <div className="text-right">
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:opacity-60"
           >
             {isSaving ? "Saving..." : "Save Changes"}
           </button>

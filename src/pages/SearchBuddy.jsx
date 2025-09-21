@@ -2,8 +2,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { discoverProfiles, decideOnUser } from "../api/server.js";
-import {useSearchParams, useNavigate } from "react-router-dom";
-import ProfileCard from "../components/ProfileCard.jsx";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { auth } from "../stores/authStore.js";
 
 // same constants as in Profile
 const GOALS = [
@@ -25,13 +25,11 @@ function calcAge(dob) {
 export default observer(function SearchBuddy() {
   const nav = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-   const [selected, setSelected] = useState(() => searchParams.get("goal"));
+  const [selected, setSelected] = useState(() => searchParams.get("goal"));
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [loc, setLoc] = useState(null);
-
-
 
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -63,10 +61,12 @@ export default observer(function SearchBuddy() {
         // res expected { count, users }
         const users = Array.isArray(res?.users) ? res.users : [];
         // add age field derived from dob
-        const enriched = users.map((u) => ({
-          ...u,
-          age: u.dob ? calcAge(u.dob) : null,
-        }));
+        const enriched = users
+          .map((u) => ({
+            ...u,
+            age: u.dob ? calcAge(u.dob) : null,
+          }))
+          .filter((u) => u._id !== auth.user?._id);
         setList(enriched);
       } catch (e) {
         if (!alive) return;
@@ -81,12 +81,12 @@ export default observer(function SearchBuddy() {
     };
   }, [selected, loc?.lat, loc?.lng]);
 
-function chooseGoal(key) {
+  function chooseGoal(key) {
     setSelected(key);
     const next = new URLSearchParams(searchParams);
     if (key) next.set("goal", key);
     else next.delete("goal");
-    setSearchParams(next, { replace: false }); // הוספת היסטוריה לטובת Back
+    setSearchParams(next, { replace: false });
   }
 
   // optimistic UI handlers
@@ -121,10 +121,10 @@ function chooseGoal(key) {
     }
   };
 
-    const onViewProfile = (u) => {
+  const onViewProfile = (u) => {
     const suffix = selected ? `?goal=${encodeURIComponent(selected)}` : "";
     nav(`/users/${u._id}${suffix}`);
-    };
+  };
 
   const title = useMemo(() => {
     if (!selected) return "Pick a goal to discover people";

@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, useSearchParams} from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { observer } from "mobx-react-lite";
 import { getPublicProfile } from "../api/server.js";
-import ProfileCard from "../components/ProfileCard.jsx";
+import PublicProfileCard from "../components/PublicProfileCard.jsx";
 
-function calcAge(dob) {
+export function calcAge(dob) {
   if (!dob) return null;
   const d = new Date(dob);
   const diff = Date.now() - d.getTime();
@@ -36,7 +36,9 @@ export default observer(function PublicProfile() {
         if (alive) setLoading(false);
       }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [id]);
 
   if (loading) return <div className="p-6 text-center">Loading…</div>;
@@ -54,7 +56,7 @@ export default observer(function PublicProfile() {
         ← Back
       </button>
 
-      <ProfileCard user={user} showActions={false} />
+      <PublicProfileCard user={user} showActions={false} />
     </div>
   );
 });
