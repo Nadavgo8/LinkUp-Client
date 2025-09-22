@@ -26,9 +26,6 @@ export default observer(function Profile() {
   const [email, setEmail] = useState(auth.user?.email || "");
   const [photoUrl, setPhotoUrl] = useState(auth.user?.photoUrl || "");
   const [bio, setBio] = useState(auth.user?.bio || "");
-
-  // Start editing bio if empty
-  // const [editingBio, setEditingBio] = useState(!auth.user?.bio?.trim());
   const [goals, setGoals] = useState(
     Array.isArray(auth.user?.goals) ? auth.user.goals : []
   );
@@ -51,7 +48,6 @@ export default observer(function Profile() {
   );
 
   const [isSaving, setIsSaving] = useState(false);
-  // const [savingBio, setSavingBio] = useState(false);
 
   //Edit profile
   const [editing, setEditing] = useState(false);
@@ -67,7 +63,6 @@ export default observer(function Profile() {
         setEmail(data.email || "");
         setPhotoUrl(data.photoUrl || "");
         setBio(data.bio || "");
-        // setEditingBio(!(data.bio && data.bio.trim()));
         setGoals(Array.isArray(data.goals) ? data.goals : []);
         setOccupation(data.occupation || "");
         setCompany(data.company || "");
@@ -88,24 +83,6 @@ export default observer(function Profile() {
       alive = false;
     };
   }, []);
-
-  // Save bio (inline, when empty)
-  // async function saveBioInline() {
-  //   if (savingBio || !bio.trim()) return;
-  //   setSavingBio(true);
-  //   setError("");
-  //   try {
-  //     // PUT /user/profile { bio }
-  //     const updated = await updateMe({ bio });
-  //     setBio(updated.bio || "");
-  //     auth.setUser(updated);
-  //     setEditingBio(false);
-  //   } catch (e) {
-  //     setError(e?.message || "Failed to save bio");
-  //   } finally {
-  //     setSavingBio(false);
-  //   }
-  // }
 
   async function handleSave() {
     setIsSaving(true);

@@ -1,4 +1,3 @@
-// src/pages/SearchBuddy.jsx
 import { useEffect, useMemo, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { discoverProfiles, decideOnUser } from "../api/server.js";
@@ -34,8 +33,18 @@ export default observer(function SearchBuddy() {
   useEffect(() => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (pos) => setLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => {}
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setLoc({ lat, lng });
+
+        const res = await fetch(
+          `/profile/discover?lat=${lat}&lng=${lng}&radius=20`
+        );
+        const data = await res.json();
+        console.log("Initial location test:", data);
+      },
+      (err) => console.error(err)
     );
   }, []);
 
@@ -51,12 +60,15 @@ export default observer(function SearchBuddy() {
       setLoading(true);
       setError("");
       try {
+        console.log("👉 selected goal:", selected, "loc:", loc);
         const res = await discoverProfiles({
+          goal: selected,
           lat: loc?.lat,
           lng: loc?.lng,
-          radius: 10,
-          goal: selected,
+          radiusKm: 10,
         });
+        console.log("Server response:", res);
+
         if (!alive) return;
         // res expected { count, users }
         const users = Array.isArray(res?.users) ? res.users : [];
@@ -110,7 +122,6 @@ export default observer(function SearchBuddy() {
         decision: "match",
         goal: selected,
       });
-      // res may contain { matched: true, chatId } if backend created chat
       if (res?.matched) {
         // optional: navigate to chat
         // nav(`/chats/${res.chatId}`)

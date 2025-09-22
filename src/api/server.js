@@ -102,16 +102,14 @@ export async function discoverProfiles({
   langs,
 }) {
   const params = new URLSearchParams();
-  if (goal) params.set("goals", goal);
-  if (lat && lng) {
-    params.set("lat", lat);
-    params.set("lng", lng);
+  if (goal) params.set("goal", goal);
+  if (lat != null && lng != null) {
+    params.set("lat", String(lat));
+    params.set("lng", String(lng));
   }
   if (radiusKm) params.set("radius", String(radiusKm));
-  if (langs) {
-    if (Array.isArray(langs)) params.set("langs", langs.join(","));
-    else params.set("langs", langs);
-  }
+  if (langs)
+    params.set("langs", Array.isArray(langs) ? langs.join(",") : langs);
   return req(`/profile/discover?${params.toString()}`);
 }
 
