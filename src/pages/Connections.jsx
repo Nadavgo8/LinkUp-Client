@@ -208,20 +208,6 @@ function AutoOpenDM({ me, partnerId, goal }) {
   return null;
 }
 
-// Custom preview to close list on mobile when selecting a channel
-function PreviewItem(props) {
-  const { setActiveChannel } = useChatContext();
-  return (
-    <div
-      onClick={() => {
-        setActiveChannel(props.channel);
-        if (window.matchMedia('(max-width: 768px)').matches) setShowList(false);
-      }}
-    >
-      <ChannelPreviewMessenger {...props} />
-    </div>
-  );
-}
 
 export default function Connections() {
   const [params] = useSearchParams();
@@ -234,6 +220,25 @@ export default function Connections() {
   const [showList, setShowList] = useState(
   !window.matchMedia('(max-width: 768px)').matches || !partnerId
 );
+  useEffect(() => {
+    if (partnerId && window.matchMedia("(max-width: 768px)").matches) {
+      setShowList(false);
+    }
+  }, [partnerId]);
+
+  const PreviewItem = (props) => {
+    const { setActiveChannel } = useChatContext();
+    return (
+      <div
+        onClick={() => {
+          setActiveChannel(props.channel);
+          if (window.matchMedia("(max-width: 768px)").matches) setShowList(false);
+        }}
+      >
+        <ChannelPreviewMessenger {...props} />
+      </div>
+    );
+  };
 
   // Token provider so the hook can connect exactly once
   const tokenProvider = useMemo(
@@ -269,14 +274,15 @@ export default function Connections() {
   return (
     <Chat client={client}>
       <AutoOpenDM me={me.id} partnerId={partnerId} goal={goal} />
-      <div
+      <div className="grid h-[100dvh] grid-cols-1 md:grid-cols-[360px,1fr]">
+      {/* <div
         style={{
           display: "grid",
           gridTemplateColumns: "360px 1fr",
           height: "80vh",
         }}
-      >
-        <div className={showList ? 'block overflow-auto md:block' : 'hidden md:block'}>
+      > */}
+         <div className={`${showList ? "block" : "hidden"} overflow-auto md:block`}>
         <ChannelList
           filters={filters}
           sort={sort}
@@ -291,13 +297,10 @@ export default function Connections() {
         </div>
 
         {/* chat area */}
-        <div className={showList ? 'hidden md:block min-w-0' : 'block min-w-0'}>
+        <div className={`${showList ? "hidden" : "block"} min-w-0 md:block`}>
           {/* Back button only on mobile */}
           <div className="md:hidden border-b px-3 py-2">
-            <button
-              onClick={() => setShowList(true)}
-              className="text-indigo-600 font-medium"
-            >
+             <button onClick={() => setShowList(true)} className="text-indigo-600 font-medium">
               ← Chats
             </button>
           </div>
