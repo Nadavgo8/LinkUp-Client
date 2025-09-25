@@ -304,7 +304,7 @@ function AutoOpenDM({ me, partnerId, goal }) {
     if (!partnerId || !me) return;
     (async () => {
       // call your backend with absolute base
-      await fetch(`${API_BASE}/chat/ensure-dm`, {
+      await fetch(`${API_BASE}/api/chat/ensure-dm`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userA: me, userB: partnerId, goal }),
@@ -334,7 +334,7 @@ export default function Connections() {
   // Token provider so the hook can connect exactly once
   const tokenProvider = useMemo(
     () => async () => {
-      const res = await fetch(`${API_BASE}/stream/token`, {
+      const res = await fetch(`${API_BASE}/api/stream/token`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
