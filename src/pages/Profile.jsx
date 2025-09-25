@@ -119,8 +119,8 @@ export default observer(function Profile() {
       setBio(updated.bio || "");
       setOccupation(updated.occupation || "");
       setCompany(updated.company || "");
-      setSmoker(updated.smoker || "prefer_not_to_say");
-      setRelationshipStatus(updated.relationshipStatus || "prefer_not_to_say");
+      setSmoker(updated.smoker || "prefer not to say");
+      setRelationshipStatus(updated.relationshipStatus || "prefer not to say");
       setEducation(updated.education || "");
       setInterests(Array.isArray(updated.interests) ? updated.interests : []);
       setCity(updated.city || "");
@@ -299,7 +299,7 @@ export default observer(function Profile() {
                 onChange={(e) => setRelationshipStatus(e.target.value)}
                 className="mt-1 w-full rounded border p-2"
               >
-                <option value="prefer_not_to_say">Prefer not to say</option>
+                <option value="prefer not to say">Prefer not to say</option>
                 <option value="single">Single</option>
                 <option value="married">Married</option>
                 <option value="divorced">Divorced</option>
@@ -318,7 +318,7 @@ export default observer(function Profile() {
                 onChange={(e) => setSmoker(e.target.value)}
                 className="mt-1 w-full rounded border p-2"
               >
-                <option value="prefer_not_to_say">Prefer not to say</option>
+                <option value="prefer not to say">Prefer not to say</option>
                 <option value="no">No</option>
                 <option value="yes">Yes</option>
                 <option value="occasionally">Occasionally</option>
