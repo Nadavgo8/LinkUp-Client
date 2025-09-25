@@ -165,14 +165,14 @@ export default observer(function Profile() {
   return (
     <div className="mx-auto max-w-5xl px-2 md:px-0 space-y-6">
       {/* Profile header */}
-      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
-        <div className="flex items-center gap-4">
+      <div className="rounded-2xl bg-white p-4 sm:p-6 shadow-sm ring-1 ring-black/5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
           {editing ? (
             <div className="relative">
               <img
                 src={photoUrl}
                 alt="Profile"
-                className="h-24 w-24 rounded-full object-cover ring-1 ring-black/10"
+                className="h-20 w-20 sm:h-24 sm:w-24 rounded-full object-cover ring-1 ring-black/10"
               />
               <label className="absolute bottom-0 right-0 bg-indigo-600 text-white px-2 py-1 text-xs rounded cursor-pointer hover:bg-indigo-700">
                 Change
@@ -216,19 +216,19 @@ export default observer(function Profile() {
                 className="text-2xl font-bold border-b focus:outline-none"
               />
             ) : (
-              <h1 className="text-4xl font-extrabold">{fullName}</h1>
+              <h1 className="text-3xl sm:text-4xl font-extrabold">{fullName}</h1>
             )}
 
             {editing ? (
-              <p className="text-slate-600">{email}</p>
+              <p className="text-slate-600 text-sm sm:text-base break-all">{email}</p>
             ) : (
-              <p className="text-slate-600">{email}</p>
+              <p className="text-slate-600 text-sm sm:text-base break-all">{email}</p>
             )}
           </div>
 
           <button
             onClick={() => setEditing(!editing)}
-            className="ml-auto rounded bg-indigo-600 px-3 py-1 text-white hover:bg-indigo-700"
+            className="w-full sm:w-auto sm:ml-auto self-stretch sm:self-auto rounded bg-indigo-600 px-3 py-2 text-white hover:bg-indigo-700"
           >
             {editing ? "Cancel" : "Edit Profile"}
           </button>

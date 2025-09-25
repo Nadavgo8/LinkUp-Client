@@ -278,12 +278,12 @@ export default observer(function App() {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b">
-        <div className="mx-auto max-w-7xl h-14 px-4 flex items-center gap-4">
+        <div className="mx-auto max-w-7xl min-h-14 px-4 py-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
           <Link to="/" className="text-xl font-semibold text-indigo-600">
             LinkUp
           </Link>
           <Toaster position="top-center" />
-          <nav className="ml-auto flex items-center gap-6 text-sm md:text-base">
+          <nav className="sm:ml-auto flex flex-wrap items-center gap-3 sm:gap-5 text-sm md:text-base">
             {/* When NOT authenticated */}
             {!auth.isAuthenticated && (
               <>
@@ -363,7 +363,7 @@ export default observer(function App() {
                   <img
                     src={auth.user.photoUrl}
                     alt="me"
-                    className="h-8 w-8 rounded-full object-cover ring-1 ring-black/10"
+                    className="hidden sm:block h-8 w-8 rounded-full object-cover ring-1 ring-black/10"
                   />
                 )}
               </>

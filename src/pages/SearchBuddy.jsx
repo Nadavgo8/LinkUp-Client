@@ -132,7 +132,7 @@ export default observer(function SearchBuddy() {
 
       const name = u.fullName || "user";
       toast.success(`Match sent to ${name}! 🎉
-            We’ll let you know if it’s mutual. You’re in control of your connections.`);
+            We’ll let you know if it’s mutual. You control your connections.`);
 
       if (res?.matched) {
         toast.success(`It’s a match with ${name}! 🤝`);
