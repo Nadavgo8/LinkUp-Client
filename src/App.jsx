@@ -17,6 +17,7 @@ import { setErrorReporter } from "./api/server.js";
 import { ui } from "./stores/uiStore.js";
 import { observer } from "mobx-react-lite";
 import { auth } from "./stores/authStore.js";
+import { Toaster } from 'react-hot-toast';
 
 setErrorReporter((msg) => ui.pushError(msg));
 
@@ -34,7 +35,7 @@ export default observer(function App() {
           <Link to="/" className="text-xl font-semibold text-indigo-600">
             LinkUp
           </Link>
-
+          <Toaster position="top-center" />
           <nav className="ml-auto flex items-center gap-6 text-sm md:text-base">
             {/* When NOT authenticated */}
             {!auth.isAuthenticated && (

@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite";
 import { discoverProfiles, decideOnUser } from "../api/server.js";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { auth } from "../stores/authStore.js";
+import { toast } from 'react-hot-toast';
 
 // same constants as in Profile
 const GOALS = [
@@ -111,7 +112,7 @@ export default observer(function SearchBuddy() {
     setList((p) => p.filter((x) => x._id !== u._id));
     try {
       await decideOnUser({ targetId: u._id, decision: "pass", goal: selected });
-      alert("No problem,\nmaybe next time there will be a match");
+      toast('No worries — maybe next time!👌');
     } catch (e) {
       setList(prev);
       setError(e?.message || "Failed to send pass");
@@ -130,9 +131,11 @@ export default observer(function SearchBuddy() {
       });
 
       const name = u.fullName || "user";
-      alert(`Your match has been sent to ${name}.\nBe in control of your connections`);
+      toast.success(`Match sent to ${name}! 🎉
+            We’ll let you know if it’s mutual. You’re in control of your connections.`);
 
       if (res?.matched) {
+        toast.success(`It’s a match with ${name}! 🤝`);
         // optional: navigate to chat
         // nav(`/chats/${res.chatId}`)
       }
