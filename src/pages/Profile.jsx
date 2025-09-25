@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
+import { useLocation } from 'react-router-dom'
 import { observer } from "mobx-react-lite";
 import { auth } from "../stores/authStore.js";
 import { getMyProfile, updateMe } from "../api/server.js";
@@ -6,6 +7,8 @@ import { calcAge } from "./PublicProfile.jsx";
 
 const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+
 
 // Fixed list of goals (keys saved in DB as 'goals')
 const GOALS = [
@@ -52,6 +55,10 @@ export default observer(function Profile() {
   //Edit profile
   const [editing, setEditing] = useState(false);
 
+  
+  const location = useLocation();
+  const goalsRef = useRef(null);
+
   // Load profile
   useEffect(() => {
     let alive = true;
@@ -84,6 +91,21 @@ export default observer(function Profile() {
     };
   }, []);
 
+  // Scroll to goals section if URL has #goals
+  useEffect(() => {
+    if (loading) return
+    if (location.hash === '#goals') {
+      goalsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      goalsRef.current?.classList.add('ring-2','ring-indigo-300')
+      const t = setTimeout(
+        () => goalsRef.current?.classList.remove('ring-2','ring-indigo-300'),
+        1200
+      )
+      return () => clearTimeout(t)
+    }
+  }, [loading, location.hash])
+
+  // Save profile changes
   async function handleSave() {
     setIsSaving(true);
     setError("");
@@ -448,7 +470,7 @@ export default observer(function Profile() {
       )}
 
       {/* Goals */}
-      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
+      <div id="goals" ref={goalsRef} className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
         <h2 className="mb-3 text-lg font-semibold">Your goals</h2>
         <div className="flex flex-wrap gap-2">
           {GOALS.map((g) => {
