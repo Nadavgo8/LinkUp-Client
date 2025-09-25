@@ -44,7 +44,11 @@ export default observer(function SearchBuddy() {
         // const data = await res.json();
         // console.log("Initial location test:", data);
       },
-      (err) => console.error(err)
+    //   (err) => console.error(err)
+        (err) => {
+        console.warn('Geolocation denied', err);
+        setLoc(null);          
+        }
     );
   }, []);
 
