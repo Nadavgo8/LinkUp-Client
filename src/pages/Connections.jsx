@@ -274,7 +274,7 @@ export default function Connections() {
   return (
     <Chat client={client}>
       <AutoOpenDM me={me.id} partnerId={partnerId} goal={goal} />
-      <div className="grid h-[100dvh] grid-cols-1 md:[grid-template-columns:360px_1fr]">
+      <div className="grid h-[calc(100dvh-64px)] overflow-hidden grid-cols-1 md:[grid-template-columns:360px_1fr]">
       {/* <div
         style={{
           display: "grid",
@@ -282,7 +282,7 @@ export default function Connections() {
           height: "80vh",
         }}
       > */}
-         <div className={`${showList ? "block" : "hidden"} md:block overflow-auto md:border-r`}>
+         <div className={`${showList ? "block" : "hidden"}  md:block overflow-y-auto md:border-r`}>
         <ChannelList
           filters={filters}
           sort={sort}
@@ -297,7 +297,7 @@ export default function Connections() {
         </div>
 
         {/* chat area */}
-        <div className={`${showList ? "hidden" : "block"} md:block min-w-0`}>
+        <div className={`${showList ? "hidden" : "block"} md:block min-w-0 overflow-y-auto`}>
           {/* Back button only on mobile */}
           <div className="md:hidden border-b px-3 py-2">
              <button onClick={() => setShowList(true)} className="text-indigo-600 font-medium">
@@ -307,7 +307,9 @@ export default function Connections() {
         <Channel>
           <Window>
             <ChannelHeader />
+            <div className="h-full">
             <MessageList />
+            </div>
             <MessageInput />
           </Window>
           <Thread />
