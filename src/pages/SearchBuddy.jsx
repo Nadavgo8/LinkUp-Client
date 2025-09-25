@@ -105,18 +105,20 @@ export default observer(function SearchBuddy() {
     setSearchParams(next, { replace: false });
   }
 
-  // optimistic UI handlers
+  // Pass
   const onPass = async (u) => {
     const prev = list;
     setList((p) => p.filter((x) => x._id !== u._id));
     try {
       await decideOnUser({ targetId: u._id, decision: "pass", goal: selected });
+      alert("No problem,\nmaybe next time there will be a match");
     } catch (e) {
       setList(prev);
       setError(e?.message || "Failed to send pass");
     }
   };
 
+    // Match
   const onMatch = async (u) => {
     const prev = list;
     setList((p) => p.filter((x) => x._id !== u._id));
@@ -126,6 +128,10 @@ export default observer(function SearchBuddy() {
         decision: "match",
         goal: selected,
       });
+
+      const name = u.fullName || "user";
+      alert(`Your match has been sent to ${name}.\nBe in control of your connections`);
+
       if (res?.matched) {
         // optional: navigate to chat
         // nav(`/chats/${res.chatId}`)
