@@ -138,7 +138,7 @@
 
 //no proxy
 // src/pages/Connections.jsx
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState} from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   useCreateChatClient,
@@ -213,6 +213,16 @@ export default function Connections() {
 
   const me = useMemo(getLocalUser, []);
 
+  const [isMobile, setIsMobile] = useState(
+    window.matchMedia("(max-width: 768px)").matches
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    const onChange = (e) => setIsMobile(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
   // Token provider so the hook can connect exactly once
   const tokenProvider = useMemo(
     () => async () => {
@@ -250,10 +260,13 @@ export default function Connections() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "360px 1fr",
-          height: "80vh",
+          gridTemplateColumns: isMobile ? "1fr" : "360px 1fr",
+          height: "100dvh",
+          // gridTemplateColumns: "360px 1fr",
+          // height: "80vh",
         }}
       >
+        <div style={{ overflow: "auto" }}>
         <ChannelList
           filters={filters}
           sort={sort}
@@ -264,6 +277,9 @@ export default function Connections() {
             placeholder: "Start a new chat…",
           }}
         />
+        </div>
+
+        <div style={{ minWidth: 0 }}>
         <Channel>
           <Window>
             <ChannelHeader />
@@ -272,6 +288,7 @@ export default function Connections() {
           </Window>
           <Thread />
         </Channel>
+        </div>
       </div>
     </Chat>
   );
