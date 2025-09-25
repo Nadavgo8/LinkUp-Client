@@ -14,6 +14,7 @@ const GOALS = [
   { key: "hangout", label: "Hangout" },
 ];
 
+
 // helper: calculate age from dob (ISO string / Date)
 function calcAge(dob) {
   if (!dob) return null;
@@ -23,145 +24,163 @@ function calcAge(dob) {
 }
 
 export default observer(function SearchBuddy() {
-  const nav = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [selected, setSelected] = useState(() => searchParams.get("goal"));
-  const [list, setList] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [loc, setLoc] = useState(null);
+    const nav = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [selected, setSelected] = useState(() => searchParams.get("goal"));
+    const [list, setList] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [loc, setLoc] = useState(null);
 
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-       (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        setLoc({ lat, lng });
+    // show only goals the current user selected in their profile
+        const allowedGoals = useMemo(() => {
+        const mine = auth.user?.goals || [];
+        return GOALS.filter(g => mine.includes(g.key));
+        }, [auth.user?.goals]);
 
-        // const res = await fetch(
-        //   `/profile/discover?lat=${lat}&lng=${lng}&radius=20`
-        // );
-        // const data = await res.json();
-        // console.log("Initial location test:", data);
-      },
-    //   (err) => console.error(err)
-        (err) => {
-        console.warn('Geolocation denied', err);
-        setLoc(null);          
-        }
-    );
-  }, []);
 
-  // fetch people on goal change
-  useEffect(() => {
-    if (!selected) {
-      setList([]);
-      setError("");
-      return;
-    }
-    let alive = true;
-    (async () => {
-      setLoading(true);
-      setError("");
-      try {
-        console.log("👉 selected goal:", selected, "loc:", loc);
-        const res = await discoverProfiles({
-          goal: selected,
-          lat: loc?.lat,
-          lng: loc?.lng,
-          radiusKm: 10,
-        });
-        console.log("Server response:", res);
+        // if selected goal is no longer allowed, reset it
+        useEffect(() => {
+            if (selected && !allowedGoals.some(g => g.key === selected)) {
+                setSelected(null);
+                const next = new URLSearchParams(searchParams);
+                next.delete('goal');
+                setSearchParams(next, { replace: true });
+            }
+        }, [selected, allowedGoals]);
 
-        if (!alive) return;
-        // res expected { count, users }
-        const users = Array.isArray(res?.users) ? res.users : [];
-        // add age field derived from dob
-        const enriched = users
-          .map((u) => ({
-            ...u,
-            age: u.dob ? calcAge(u.dob) : null,
-          }))
-          .filter((u) => u._id !== auth.user?._id);
-        setList(enriched);
-      } catch (e) {
-        if (!alive) return;
-        setError(e?.message || "Failed to search");
+        // Get user location
+    useEffect(() => {
+        if (!navigator.geolocation) return;
+        navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            setLoc({ lat, lng });
+
+            // const res = await fetch(
+            //   `/profile/discover?lat=${lat}&lng=${lng}&radius=20`
+            // );
+            // const data = await res.json();
+            // console.log("Initial location test:", data);
+        },
+        //   (err) => console.error(err)
+            (err) => {
+            console.warn('Geolocation denied', err);
+            setLoc(null);          
+            }
+        );
+    }, []);
+
+    // fetch people on goal change
+    useEffect(() => {
+        if (!selected) {
         setList([]);
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
-    return () => {
-      alive = false;
+        setError("");
+        return;
+        }
+        let alive = true;
+        (async () => {
+        setLoading(true);
+        setError("");
+        try {
+            console.log("👉 selected goal:", selected, "loc:", loc);
+            const res = await discoverProfiles({
+            goal: selected,
+            lat: loc?.lat,
+            lng: loc?.lng,
+            radiusKm: 10,
+            });
+            console.log("Server response:", res);
+
+            if (!alive) return;
+            // res expected { count, users }
+            const users = Array.isArray(res?.users) ? res.users : [];
+            // add age field derived from dob
+            const enriched = users
+            .map((u) => ({
+                ...u,
+                age: u.dob ? calcAge(u.dob) : null,
+            }))
+            .filter((u) => u._id !== auth.user?._id);
+            setList(enriched);
+        } catch (e) {
+            if (!alive) return;
+            setError(e?.message || "Failed to search");
+            setList([]);
+        } finally {
+            if (alive) setLoading(false);
+        }
+        })();
+        return () => {
+        alive = false;
+        };
+    }, [selected, loc?.lat, loc?.lng]);
+
+    function chooseGoal(key) {
+        setSelected(key);
+        const next = new URLSearchParams(searchParams);
+        if (key) next.set("goal", key);
+        else next.delete("goal");
+        setSearchParams(next, { replace: false });
+    }
+
+    // Pass
+    const onPass = async (u) => {
+        const prev = list;
+        setList((p) => p.filter((x) => x._id !== u._id));
+        try {
+        await decideOnUser({ targetId: u._id, decision: "pass", goal: selected });
+        toast('No worries — maybe next time!👌');
+        } catch (e) {
+        setList(prev);
+        setError(e?.message || "Failed to send pass");
+        }
     };
-  }, [selected, loc?.lat, loc?.lng]);
 
-  function chooseGoal(key) {
-    setSelected(key);
-    const next = new URLSearchParams(searchParams);
-    if (key) next.set("goal", key);
-    else next.delete("goal");
-    setSearchParams(next, { replace: false });
-  }
+        // Match
+    const onMatch = async (u) => {
+        const prev = list;
+        setList((p) => p.filter((x) => x._id !== u._id));
+        try {
+        const res = await decideOnUser({
+            targetId: u._id,
+            decision: "match",
+            goal: selected,
+        });
 
-  // Pass
-  const onPass = async (u) => {
-    const prev = list;
-    setList((p) => p.filter((x) => x._id !== u._id));
-    try {
-      await decideOnUser({ targetId: u._id, decision: "pass", goal: selected });
-      toast('No worries — maybe next time!👌');
-    } catch (e) {
-      setList(prev);
-      setError(e?.message || "Failed to send pass");
-    }
-  };
+        const name = u.fullName || "user";
+        toast.success(`Match sent to ${name}! 🎉
+                We’ll let you know if it’s mutual. You control your connections.`);
 
-    // Match
-  const onMatch = async (u) => {
-    const prev = list;
-    setList((p) => p.filter((x) => x._id !== u._id));
-    try {
-      const res = await decideOnUser({
-        targetId: u._id,
-        decision: "match",
-        goal: selected,
-      });
+        if (res?.matched) {
+            //toast.success(`It’s a match with ${name}! 🤝`);
+            // optional: navigate to chat
+            // nav(`/chats/${res.chatId}`)
+        }
+        } catch (e) {
+        setList(prev);
+        setError(e?.message || "Failed to send match");
+        }
+    };
 
-      const name = u.fullName || "user";
-      toast.success(`Match sent to ${name}! 🎉
-            We’ll let you know if it’s mutual. You’re in control of your connections.`);
+    const onViewProfile = (u) => {
+        const suffix = selected ? `?goal=${encodeURIComponent(selected)}` : "";
+        nav(`/users/${u._id}${suffix}`);
+    };
 
-      if (res?.matched) {
-        toast.success(`It’s a match with ${name}! 🤝`);
-        // optional: navigate to chat
-        // nav(`/chats/${res.chatId}`)
-      }
-    } catch (e) {
-      setList(prev);
-      setError(e?.message || "Failed to send match");
-    }
-  };
-
-  const onViewProfile = (u) => {
-    const suffix = selected ? `?goal=${encodeURIComponent(selected)}` : "";
-    nav(`/users/${u._id}${suffix}`);
-  };
-
-  const title = useMemo(() => {
-    if (!selected) return "Pick a goal to discover people";
-    const label = GOALS.find((g) => g.key === selected)?.label || selected;
-    return `People near you for: ${label}`;
-  }, [selected]);
+    const title = useMemo(() => {
+        if (!selected) return "Pick a goal to discover people";
+        const label = GOALS.find((g) => g.key === selected)?.label || selected;
+        return `People near you for: ${label}`;
+    }, [selected]);
 
   return (
     <div className="mx-auto max-w-5xl px-2 md:px-0 space-y-6">
       {/* Goal filter bar */}
       <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
         <div className="flex flex-wrap items-center gap-2">
-          {GOALS.map((g) => {
+          {allowedGoals.map((g) => {
             const active = selected === g.key;
             return (
               <button
@@ -182,6 +201,18 @@ export default observer(function SearchBuddy() {
           })}
         </div>
       </div>
+
+       {/* No allowed goals message */}
+      {allowedGoals.length === 0 && (
+        <div className="mt-3 rounded-2xl bg-white p-4 ring-1 ring-black/5 text-slate-600">
+            You haven’t selected any goals yet. Go to{" "}
+            <button onClick={() => nav('/profile#goals')} className="text-indigo-600 underline">
+            Your Profile
+            </button>{" "}
+            and choose your goals to start searching.
+        </div>
+        )}
+
 
       {/* Results header */}
       <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
