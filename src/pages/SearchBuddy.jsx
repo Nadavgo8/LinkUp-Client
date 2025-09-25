@@ -33,18 +33,22 @@ export default observer(function SearchBuddy() {
   useEffect(() => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
+       (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         setLoc({ lat, lng });
 
-        const res = await fetch(
-          `/profile/discover?lat=${lat}&lng=${lng}&radius=20`
-        );
-        const data = await res.json();
-        console.log("Initial location test:", data);
+        // const res = await fetch(
+        //   `/profile/discover?lat=${lat}&lng=${lng}&radius=20`
+        // );
+        // const data = await res.json();
+        // console.log("Initial location test:", data);
       },
-      (err) => console.error(err)
+    //   (err) => console.error(err)
+        (err) => {
+        console.warn('Geolocation denied', err);
+        setLoc(null);          
+        }
     );
   }, []);
 
