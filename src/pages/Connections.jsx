@@ -151,8 +151,10 @@ import {
   Thread,
   Window,
   useChatContext,
+  ChannelPreviewMessenger
 } from "stream-chat-react";
 import "stream-chat-react/dist/css/v2/index.css";
+
 
 const apiKey = import.meta.env.VITE_STREAM_API_KEY;
 // normalize base (supports empty string in production)
@@ -206,6 +208,21 @@ function AutoOpenDM({ me, partnerId, goal }) {
   return null;
 }
 
+// Custom preview to close list on mobile when selecting a channel
+function PreviewItem(props) {
+  const { setActiveChannel } = useChatContext();
+  return (
+    <div
+      onClick={() => {
+        setActiveChannel(props.channel);
+        if (window.matchMedia('(max-width: 768px)').matches) setShowList(false);
+      }}
+    >
+      <ChannelPreviewMessenger {...props} />
+    </div>
+  );
+}
+
 export default function Connections() {
   const [params] = useSearchParams();
   const partnerId = params.get("partner");
@@ -213,15 +230,10 @@ export default function Connections() {
 
   const me = useMemo(getLocalUser, []);
 
-  const [isMobile, setIsMobile] = useState(
-    window.matchMedia("(max-width: 768px)").matches
-  );
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 768px)");
-    const onChange = (e) => setIsMobile(e.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
+  // For responsive: show list by default on desktop, hide on mobile if no partner
+  const [showList, setShowList] = useState(
+  !window.matchMedia('(max-width: 768px)').matches || !partnerId
+);
 
   // Token provider so the hook can connect exactly once
   const tokenProvider = useMemo(
@@ -260,17 +272,16 @@ export default function Connections() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: isMobile ? "1fr" : "360px 1fr",
-          height: "100dvh",
-          // gridTemplateColumns: "360px 1fr",
-          // height: "80vh",
+          gridTemplateColumns: "360px 1fr",
+          height: "80vh",
         }}
       >
-        <div style={{ overflow: "auto" }}>
+        <div className={showList ? 'block overflow-auto md:block' : 'hidden md:block'}>
         <ChannelList
           filters={filters}
           sort={sort}
           options={options}
+          Preview={PreviewItem} 
           additionalChannelSearchProps={{
             channelType: "messaging",
             searchForChannels: false,
@@ -279,7 +290,17 @@ export default function Connections() {
         />
         </div>
 
-        <div style={{ minWidth: 0 }}>
+        {/* chat area */}
+        <div className={showList ? 'hidden md:block min-w-0' : 'block min-w-0'}>
+          {/* Back button only on mobile */}
+          <div className="md:hidden border-b px-3 py-2">
+            <button
+              onClick={() => setShowList(true)}
+              className="text-indigo-600 font-medium"
+            >
+              ← Chats
+            </button>
+          </div>
         <Channel>
           <Window>
             <ChannelHeader />
@@ -288,7 +309,7 @@ export default function Connections() {
           </Window>
           <Thread />
         </Channel>
-        </div>
+      </div>
       </div>
     </Chat>
   );
