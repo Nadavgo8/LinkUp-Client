@@ -44,12 +44,34 @@ async function req(path, { method = "GET", body, auth = true, headers } = {}) {
   const ct = res.headers.get("content-type") || "";
   const isJson = ct.includes("application/json");
 
+  // if (!res.ok) {
+  //   let message = `Request failed (${res.status})`;
+  //   try {
+  //     message = isJson
+  //       ? (await res.json())?.message || message
+  //       : (await res.text()) || message;
+  //   } catch {}
+  //   report(message);
+  //   throw new Error(message);
+  // }
+
+  // if (res.status === 204) return null;
+  // return isJson ? res.json() : res.text();
   if (!res.ok) {
     let message = `Request failed (${res.status})`;
     try {
-      message = isJson
-        ? (await res.json())?.message || message
-        : (await res.text()) || message;
+      if (isJson) {
+        const data = await res.json();
+        message =
+          data.message ||
+          data.msg ||
+          (Array.isArray(data.errors)
+            ? data.errors.map((e) => e.msg).join(", ")
+            : null) ||
+          message;
+      } else {
+        message = (await res.text()) || message;
+      }
     } catch {}
     report(message);
     throw new Error(message);
