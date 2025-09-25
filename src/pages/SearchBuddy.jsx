@@ -154,7 +154,7 @@ export default observer(function SearchBuddy() {
                 We’ll let you know if it’s mutual. You control your connections.`);
 
         if (res?.matched) {
-            toast.success(`It’s a match with ${name}! 🤝`);
+            //toast.success(`It’s a match with ${name}! 🤝`);
             // optional: navigate to chat
             // nav(`/chats/${res.chatId}`)
         }
