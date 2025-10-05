@@ -3,10 +3,7 @@
 ## Overview
 
 LinkUp Client is the frontend application of the LinkUp social networking platform - a modern, responsive web application built with React.js. It provides an intuitive and engaging user interface for social networking, connecting with friends, sharing content, and participating in live events.
-
-# LinkUp Client
-
-LinkUp is a React-based application designed to facilitate user connections and chat functionality. This project serves as the client-side implementation, providing a user-friendly interface for managing profiles, connections, and messaging.
+This project serves as the client-side implementation, providing a user-friendly interface for managing profiles, connections, and messaging.
 
 ## Project Structure
 
